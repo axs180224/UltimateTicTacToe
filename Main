@@ -1,0 +1,128 @@
+// Anand Saravanan
+// November 19, 2020
+// CS 2336.002
+// Analysis: We are going to program an Ultimate TIc Tac Toe game. It is taking the already commonly known
+// Tic Tac Toe game and adding an extra level of strategy and complexity. There is a master board which is a
+// normal Tic Tac Toe board except in each box in the master board there is a another mini tic tac toe board. The first
+// player will choose a board and a box number from there it will take the box number and use that as the next players
+// board number and they choose a box in that board. Like this we keep repeating this process until we have a player get
+// in a row on the master board to win.
+//
+// design: In class we have had to create normal tic tac toe games before. However, I quickly got lost in that
+// process and I wanted to start fresh. I also got a little help thanks to the CSMC for helping me think about this problem
+// in a logical way. They recommended I draw out the board on a piece of paper and write out the specific movements and
+// pieces I would need in order to make the game work. My program has a total of 5 classes. In the computer class is the
+// computer choosing a move. Another class I have is miniBoard. Here are all the movements and logic for getting the
+// possible moves, checking if there is a winner in the miniboards, etc. Another class is the MasterBoard. This class
+// extends the miniBoard class. Here we print the masterboard using an arraylist and check for winners and possible board
+// movements. Next we have a player class that checks mostly if there is a winner and sets the char 'X' and 'O'. And of
+// course we have the main class in which we call all the different classes and methods.
+//
+// Test: I mainly tested two things. The first was that the computer's moves were right and following the rules of the
+// game. I also had to check if the user inputted a number for the board or box that is not in the range. If this was
+// to occur the program will print that the user entered a wrong value and needs to enter another value that is in the range.
+
+import java.util.*;
+
+public class Main  { // main class to run
+
+    public static void main(String[] args) { // main method
+        System.out.println("!!!  Lets play Ultimate Tic Tac Toe  !!!");
+
+
+        boolean isgameOver; // set variables
+        String winner;
+        int turn = 0;
+        boolean firstBoard = false;
+        int  curBoard = 0;
+        int selectedBox;
+
+
+        System.out.println(" ★★★GAME MODE★★★ "); // display starting info
+        System.out.println("1 (Play against your friend) ");
+        System.out.println("2 (Play against the computer)");
+
+        ArrayList<miniBoard> boards = new ArrayList<>(); // create new boards using ArrayList
+        for (int i = 0; i < 9; i++) // for loop to create board
+            boards.add(new miniBoard());
+
+        Scanner gm = new Scanner(System.in); // allow user input
+        int gameMode = gm.nextInt(); // set user input to game mode
+        MasterBoard.printMasterBoard(boards);
+
+        if(gameMode == 2){ // if the user chooses to play against the computer
+            System.out.println(" ⬇⬇Choose a option below⬇⬇");
+            System.out.println("1) I want to go first"+"\n" + "or" + " \n" + "2)the computer to go first?");
+            int compgameType = gm.nextInt();
+            if(compgameType == 1)
+                turn = 1;
+
+        }
+
+        do {// loop for actual game
+            System.out.println("CURRENT PLAYER " + Player.PLAYER[turn]); // show the current player
+            int[] compMove = Computer.computerMove(boards, curBoard); // make the computer move
+            MasterBoard.printBoardChoice(firstBoard, curBoard, boards); // display the different choices for boards to select (mostly only happens in the first round
+            if (!firstBoard) { // after the first board is selected
+                curBoard = -1;
+
+                while (!MasterBoard.inRange(curBoard)) { // make sure the user enters the right value
+                    System.out.println("SELECT A VALID BOARD: ");
+                    System.out.print("Selected Board: ");
+                    boolean game = gameMode == 1 || gameMode == 2 && turn == 1; // player vs player
+                    if (game) { // if it is two players
+                        curBoard = MasterBoard.validValue(); // set the valid value to the current board
+                    } else {
+                        curBoard = compMove[0];// set the current board to the computer move
+                        System.out.println(curBoard);
+                    }
+                }
+            }
+
+            else {
+                System.out.println("The selected Board: " + curBoard); // print the selected board
+            }
+
+            MasterBoard.printPossibleBoxes(curBoard, boards); // show the possible moves
+            selectedBox = -1;
+            while (!miniBoard.inRange(selectedBox) || !boards.get(curBoard).isBoxEmpty(selectedBox)) { //start while loop
+                System.out.println("SELECT A VALID BOX: ");
+                System.out.print("Selected box: ");
+                if (gameMode == 1 || gameMode == 2 && turn == 1) { // if its the second persons turn
+                    selectedBox = miniBoard.validValue(); // set the value of the miniBoard to the selected box
+                } else {
+                    selectedBox = compMove[1]; // the computer move is set to selected box
+                    System.out.println(selectedBox);
+                }
+            }
+
+            boards.get(curBoard).fillBox(selectedBox, turn);
+            if (!boards.get(selectedBox).isFull()) {
+                firstBoard = true;
+                curBoard = selectedBox;
+            } else {
+                firstBoard = false;
+            }
+
+            MasterBoard.printMasterBoard(boards);
+            System.out.print("⬇⬇⬇ Winner of big board will be tracked below ⬇⬇⬇ \n");
+
+            MasterBoard.printGameWinners(boards); // each tie player wins board it will record it
+            System.out.println();
+
+            isgameOver = Player.checkForWin(boards) || MasterBoard.isBoardsFilled(boards);
+
+             if(turn == 0) {
+                 turn = 1;
+             } else turn = 0;
+
+        } while(!isgameOver); // as long as the game isnt over
+
+        int winPlayer = Player.getWinner(boards); // once it is over get the winner for miniboards
+        if (winPlayer > 3) {
+            winner = String.valueOf(Player.PLAYER[winPlayer]); // set the winner to the winner of the masterboard
+        } else winner = "Tie"; // no one wins its a tie
+        System.out.println("GAME OVER " + winner + " is the winner!");
+    }
+
+}
