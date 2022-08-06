@@ -1,0 +1,138 @@
+import java.util.*;
+
+public class miniBoard { // start class of miniboard
+    private final int values[];// create variables
+    private boolean isfull;
+    private boolean iswon;
+    private int winner;
+
+    public miniBoard() { // constructor
+        this.values = new int[9];
+        for (int i = 0; i < 9; i++)
+            this.values[i] = -1;
+        this.isfull = false;
+        this.iswon = false;
+        this.winner = -1;
+    }
+
+    protected boolean isFull() { // reference current isFull
+        this.isfull = true;
+        for (int i = 0; i < 9; i++)
+            this.isfull = this.isfull && !isBoxEmpty(i);
+        return this.isfull;
+    }
+
+    protected boolean isWon() { // reference current isWOn
+        return this.iswon;
+    }
+
+    protected int getWinner() { // reference current getWinner
+        return this.winner;
+    }
+
+    public static ArrayList<Integer> choiceBox(miniBoard mboard) { // method to get all the possible boxes
+        ArrayList<Integer> possibleMoves = new ArrayList<>(); // create arrayList of Possible Moves
+        for (int i = 0; i < 9; i++) // for loop to add to the arrayList
+            if (mboard.isBoxEmpty(i)) // if the box is empty
+                possibleMoves.add(i); // add it to the arrayList
+        return possibleMoves;
+    }
+
+    protected static void printPossibleBoxes(int curBoard, ArrayList<miniBoard> boards) { // method to print all the possible choices
+        ArrayList<Integer> possibleMoves = choiceBox(boards.get(curBoard)); // set arrayList to choiceBox values
+        System.out.print("You can choose between these boxes: " + possibleMoves + "\n"); // print all the values
+
+    }
+
+    protected boolean isBoxEmpty(int box) { //method to check if a space is empty
+        return values[box] == -1; // return true or -1 if it is empty
+    }
+
+    protected void fillBox(int box, int value) { // method to make a move
+        if (box >= 0 && box < 9 && isBoxEmpty(box)) // check if the box is already taken
+            this.values[box] = value; // set the user value into the box
+        checkForWins(); // check if that move caused a win or to fill a board.
+        isFull();
+    }
+    
+    protected static int validValue() throws InputMismatchException { //method to check if the input given was valid
+        Scanner input = new Scanner(System.in); 
+        while (true) return input.nextInt(); 
+    }
+
+    protected char getPlayerIn(int box) { // method to get player
+        return (values[box] >= 0) ? Player.PLAYER[values[box]] : ' ';
+    }
+
+    private void checkForWins() { // method to check for miniboard win
+        boolean iswin = false; //set variables
+        int winner = -1;
+        boolean possible;
+        for (int player = 0; player < 2; player++) { // for loop to run through or each player
+            for (int i = 0; i < 9; i++) { // go to each box in miniboard
+
+                possible = true;// left to right  win
+                int step = i;
+                if (step % 3 != 0)
+                    possible = false;
+                if (possible) {
+                    iswin = true;
+                    winner = player;
+                    for (; step < i + 3; step++)
+                        iswin = iswin && values[step] == player;
+                    if (iswin)
+                        break;
+                }
+
+
+                possible = true; // diagonal win
+                step = i;
+                possible = false;
+                if (possible) {
+                    iswin = true;
+                    winner = player;
+                    if (step == 0) {
+                        for (; step < 9; step += 4)
+                            iswin = iswin && values[step] == player;
+                    }
+                    if (step == 2) {
+                        for (; step < 9; step += 2)
+                            iswin = iswin && values[step] == player;
+                    }
+                    if (!iswin) {
+                        continue;
+                    }
+                    break;
+                }
+
+
+                possible = true; // up and down win
+                step = i;
+                if (step > 2)
+                    possible = false;
+                if (possible) {
+                    iswin = true;
+                    winner = player;
+                    for (; step < i + 7; step += 3)
+                        iswin = iswin && values[step] == player;
+                    if (iswin)
+                        break;
+                }
+
+
+            }
+            if (iswin)
+                break;
+        }
+        if (iswin) {
+            this.iswon = true;
+            this.winner = winner;
+        }
+    }
+
+    protected static boolean inRange(int value) { // method to check if the value entered is between 0 and 8
+        if(value >= 0 && value <= 8)
+            return true;
+        return false;
+    }
+}
